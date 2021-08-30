@@ -7,8 +7,154 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+listOfPackages <-c("tidyverse","forcats","skimr","magrittr", "modeest", "raster", "moments")
+
+for (i in listOfPackages){
+  if(! i %in% installed.packages()){
+    install.packages(i, dependencies = TRUE)
+  }
+  lapply(i, require, character.only = TRUE)
+  rm(i)
+}
+data <- read_csv("dataset/WA_Fn-UseC_-HR-Employee-Attrition.csv")
+attrition <- data
+attach(attrition)
+
+attrition %<>% 
+  mutate_if(is.character,as.factor)
+str(attrition)
+
+attrition$Education <- as.factor(Education)
+attrition$Education <-  factor(Education, levels = c(1,2,3,4,5), labels = c("Below College", "College", "Bachelor", "Master", "Doctor" ))
+attrition$EnvironmentSatisfaction <-  factor(EnvironmentSatisfaction, levels = c(1,2,3,4), labels = c("Low", "Medium", "High", "Very High" ))
+attrition$JobInvolvement <-  factor(JobInvolvement, levels = c(1,2,3,4), labels = c("Low", "Medium", "High", "Very High" ))
+attrition$JobLevel <- as.factor(JobLevel)
+attrition$JobSatisfaction <-  factor(JobSatisfaction, levels = c(1,2,3,4), labels = c("Low", "Medium", "High", "Very High" ))
+attrition$PerformanceRating <-  factor(PerformanceRating, levels = c(1,2,3,4), labels = c("Low", "Good", "Excellent", "Outstanding" ))
+attrition$RelationshipSatisfaction <-  factor(RelationshipSatisfaction, levels = c(1,2,3,4), labels = c("Low", "Medium", "High", "Very High"))
+attrition$WorkLifeBalance <-  factor(WorkLifeBalance, levels = c(1,2,3,4), labels = c("Bad", "Good", "Better", "Best"))
+str(attrition)
+
+# Creating new attribute, grouping by age range
+ageGroup <- rep(NA, nrow(attrition))
+ageGroup[which(attrition$Age>50)]="51 and up"
+ageGroup[which(attrition$Age>40 & attrition$Age<=50)]="41-50"
+ageGroup[which(attrition$Age>30 & attrition$Age<=40)]="31-40"
+ageGroup[which(attrition$Age>20 & attrition$Age<=30)]="21-30"
+ageGroup[which(attrition$Age<=20)]="20 or Below"
+attrition$ageGroup<-as.factor(ageGroup)
 ```
 
+
+The data set used contains `r nrow(data)` observations with `r ncol(data)` variables on different employee information.  
+We are going to detail some of its' variables:  
+<ul>
+  <li>Attrition: Two-level factor ("Yes", "No"). Indicates whether the person left the company or not. Approximately 16% of all employees decided to leave the company, while the remaining 84% continue to work for the company.</li>
+  <li>Environment Satisfaction: Four-level factor ("Low", "Medium", "High", "Very High"). Satisfaction of the person with his or her work environment.<li>
+  <ul>
+    <li>"Low": A total of 284 people are found, representing 19% of the total population.</li>
+    <li>"Medium": There are a total of 287 people, representing 20% of the total population.</li>
+    <li>"High": There are a total of 453 people, representing 31% of the total population.</li>
+    <li>"Very High": A total of 446 people are found, representing 30% of the total population.</li>
+  </ul>
+  <li>"JobInvolvement": four-level factor ("Low", "Medium", "High", "Very High"). Level of involvement that the person has with his or her job.
+</li>
+  <ul>
+    <li>"Low": A total of 83 people are found, representing 6% of the total population.</li>
+    <li>"Medium": A total of 375 people are found, representing 26% of the total population.</li>
+    <li>"High": A total of 868 people are found, representing 59% of the total population.</li>
+    <li>"Very High": A total of 144 people are found, representing 10% of the total population.</li>
+  </ul>
+</ul>
+
+<p>Although the data set has many variables, I think it is always valuable to see its' structure:</p>  
+```{r echo=FALSE}
+str(data, give.attr = FALSE)
+```
+  
+<p>Next, we have to check for any missing data:</p>
+```{r}
+sapply(data, function(x) sum(is.na(x)))
+```
+<p>Lucky for us, there are none missing values</p>  
+<p>Although certain adjustments must be made since the variables of type "character" must be treated as factors. In addition, the variables "Education Environment Satisfaction", "Job Involvement", "Job Level", "Job Satisfaction", "Performance Rating", "Relationship Satisfaction" and "Work Life Balance" should be transformed from numerical to factor type, and should be accompanied by their respective labels. In addition, we are going to create a new variable that groups people based on their age range</p>  
+<p>Let's have a look to our new data ready for exploring:</p>
+```{r echo=FALSE}
+str(attrition, give.attr = FALSE)
+```
+  
+<p>The dataset is composed of 17 factor-type variables and 18 numeric-type variables. It also contains no missing observations.  
+A quick scan of the dataset shows that:
+</p>
+<ol>
+  <li>There were 237 people, out of a total of 1470, who left the company. This represents 16% of the total population.
+</li>
+  <li>The variable "Over 18" does not provide information, since all the people are over 18 years of age.</li>
+  <li>The number of males exceeds the number of females by 20%.</li>
+  <li>People with a Bachellors' degree represent 38% of the total number of employees.</li>
+</ol>
+<h2>EDA</h2>
+<p>These will be the propositions that will guide the exploratory analysis:
+</p>
+<ol>
+  <li>Income per month is related to people leaving the company.</li>
+  <li>People with fewer years in the company are the ones who are leaving more frequently.</li>
+  <li>The educational level of the individual influences the decision to leave the company.</li>
+  <li>Gender may be related to employees leaving the company.</li>
+</ol>  
+<p>1. Income per month is related to people leaving the company</p>
+<p>To begin with the first proposition, which is income per month, the quantiles for the Monthly Income variable are presented:
+</p>
+```{r echo = FALSE}
+quantile(MonthlyIncome)
+```
+<p>According to the above information, 50% of the employees have a monthly income above $4919. The standard deviation shows that, the income per month deviates approximately $`r round(sd(MonthlyIncome),2)` from the mean. In addition, the value of Fischer's skewness coefficient is 1.37. This indicates a positive skewness, where the skewness concentrates most of its values on the left side of the mean.  
+The following graph shows the distribution:</p>
+```{r echo = FALSE}
+ggplot(attrition, aes(MonthlyIncome, fill = Attrition)) +
+  geom_histogram(binwidth = 500, color = "black", alpha = .8)+
+  geom_vline(aes(xintercept = mean(attrition$MonthlyIncome) ), color = "navyblue", linetype = "dashed", size = 1) +
+  labs(title="Monthly Income Distribution", x = "Monthly Income", 
+       y = "Quantity", caption = "Intercepting 'x' axis with arithmethic mean")
+```
+<p>It is possible to visualize that "elongation" to the right that characterizes the positive asymmetry. A vertical line is drawn intersecting the arithmetic mean of "Monthly Income" which corresponds to approximately $6500. This is because it appears that below this value is where most of the leavers are concentrated. Assuming that the monthly income increases with the number of years worked in the company, we would expect a more frequent drop in the employees with less years in the company.</p>  
+<p>2. People with fewer years in the company are the ones who are leaving more frequently</p>  
+```{r echo = FALSE}
+attrition %>%
+  filter(YearsAtCompany < 21) %>%
+  ggplot( aes(YearsAtCompany, MonthlyIncome)) +
+  geom_jitter( aes(color = Attrition), alpha = .4) +
+  geom_smooth() + 
+  geom_hline(aes(yintercept = mean(MonthlyIncome)), color = "navyblue", linetype = "solid", size = .8) +
+  geom_hline(aes(yintercept = median(MonthlyIncome)), color = "purple4", linetype = "twodash", size = .8) +
+  geom_vline(aes(xintercept = 13 ), color = "navyblue", linetype = "dashed", size = .8) + 
+  labs(title = "Montlhly Income per Working Years At Company", x = "Years At Company", 
+       y = "Monthly Income")
+```
+  
+<p>The above graph confirms the expected behavior: income per month increases with the years worked for the company. It should be clarified that, for the previous graph, it was filtered only to include employees with 20 years or less working for the company. This is only because there are not so many observations above that value.
+The same horizontal line of the previous graph is drawn, representing the average monthly income. Additionally, a vertical line is added, intercepting the 13 years of working in the company. The latter is drawn because, around this value, there seems to be a break point, where there are no longer so many employees after that number of years. This will be refined in the following graph.  
+The previous graph is then broken down according to the "Attrition" condition:
+</p>
+```{r echo = FALSE}
+attrition %>%
+  filter(YearsAtCompany < 21 & Attrition == "Yes") %>%
+  ggplot( aes(YearsAtCompany, MonthlyIncome)) +
+   geom_jitter(color = "#7bf1a8")+
+   geom_smooth(se = F) +
+  labs(title = "Monthly Income per Working Years At Company", subtitle = "Employees that did leave the company", x = "Years At Company", y = "Monthly Income")
+```
+  
+```{r}
+attrition %>%
+  filter(YearsAtCompany < 21 & Attrition == "No") %>%
+  ggplot( aes(YearsAtCompany, MonthlyIncome)) +
+   geom_jitter(color = "#ffadad")+
+   geom_smooth(se = F) +
+  labs(title = "Monthly Income per Working Years At Company", subtitle = "Employees that did not leave the company", x = "Years At Company", y = "Monthly Income")
+```
+<p>If the population is broken down into whether it is above the average monthly income or not, 977 people are below the average, while 493 are above this value. Of these 977 people, 185 did leave the company, representing 19% of the population. Of the 493 people above the average, 52 people left the company, representing 11% of that population.
+</p>
 ## R Markdown
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.

@@ -64,50 +64,75 @@ ageGroup[which(attrition$Age>20 & attrition$Age<=30)]="21-30"
 ageGroup[which(attrition$Age<=20)]="20 or Below"
 attrition$ageGroup<-as.factor(ageGroup)
 
+## AKI
+ggplot(attrition, aes(MonthlyIncome, fill = Attrition)) +
+  geom_histogram(binwidth = 500, color = "black", alpha = .8)+
+  geom_vline(aes(xintercept = mean(attrition$MonthlyIncome) ), color = "navyblue", linetype = "dashed", size = 1) +
+  labs(title="Monthly Income Distribution", x = "Monthly Income", 
+       y = "Quantity", caption = "Intercepting 'x' axis with arithmethic mean")
+ggsave("distribution-monthly-income.png", path = "images/")
+
+attrition %>%
+  filter(YearsAtCompany < 21) %>%
+  ggplot( aes(YearsAtCompany, MonthlyIncome)) +
+  geom_jitter( aes(color = Attrition), alpha = .4) +
+  geom_smooth() + 
+  geom_hline(aes(yintercept = mean(MonthlyIncome)), color = "navyblue", linetype = "solid", size = .8) +
+  geom_hline(aes(yintercept = median(MonthlyIncome)), color = "purple4", linetype = "twodash", size = .8) +
+  geom_vline(aes(xintercept = 13 ), color = "navyblue", linetype = "dashed", size = .8) + 
+  labs(title = "Montlhly Income per Working Years At Company", x = "Years At Company", 
+       y = "Monthly Income")
+ggsave("yearsAtCompany-vs-monthlyIncome.png", path = "images/")
+
+attrition %>%
+  filter(YearsAtCompany < 21 & Attrition == "Yes") %>%
+  ggplot( aes(YearsAtCompany, MonthlyIncome)) +
+  geom_jitter(color = "#7bf1a8")+
+  geom_smooth(se = F) +
+  labs(title = "Monthly Income per Working Years At Company", subtitle = "Employees that did leave the company", x = "Years At Company", y = "Monthly Income")
+ggsave("YES-yearsAtCompany-vs-montlhyIncome.png", path = "images/")
+
+attrition %>%
+  filter(YearsAtCompany < 21 & Attrition == "No") %>%
+  ggplot( aes(YearsAtCompany, MonthlyIncome)) +
+  geom_jitter(color = "#ffadad")+
+  geom_smooth(se = F) +
+  labs(title = "Monthly Income per Working Years At Company", subtitle = "Employees that did not leave the company", x = "Years At Company", y = "Monthly Income")
+ggsave("NO-yearsAtCompany-vs-montlhyIncome.png", path = "images/")
+## 
+
+
+
+
 ggplot(attrition) + geom_bar(aes(x = forcats::fct_infreq(ageGroup),fill= JobInvolvement)) +
   labs(title = "Title", x = "Age", y = "Count") + 
   theme(plot.title = element_text(hjust = 0.5)) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ggplot_global_settings +
-  Pastel1
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-#library(colorspace)
+
 ggplot(attrition) + 
   geom_bar(aes(x = forcats::fct_infreq(JobInvolvement),fill= JobInvolvement)) +
-  facet_wrap(~ageGroup,  scales = "free") + 
-  labs(title = "Title",x = "X title", 
-       y = "Y title", caption = "caption") +  
-  ggplot_global_settings +
+  facet_wrap(~ageGroup,  scales = "free") +
   theme(plot.title = element_text(hjust = 0.5),axis.text.x = element_text(angle = 45, hjust = 1),
         plot.caption = element_text(hjust = 0.5),
-        legend.title = element_text(hjust = 0.5)) +
-  Pastel1
+        legend.title = element_text(hjust = 0.5)) 
 
 
 
 ggplot(attrition) +
-  labs(title = "High Job Involvment is the most popular Rating amongst all age groups 
-  except for 20 year olds for Both Current and Non Current employees.",x = "Job Involvement Rating", 
-       y = "Count of Job Involvement Ratings by Age Group", caption = "High Job Involvement is important for employers to consider for employee attrition") +
-  ggplot_global_settings +
   theme(plot.title = element_text(hjust = 0.5),axis.text.x = element_text(angle = 45, hjust = 1),
         plot.caption = element_text(hjust = 0.5),
         legend.title = element_text(hjust = 0.5)) +
   guides(fill=guide_legend("Job Involvement Rating")) +
   geom_bar(aes(x = forcats::fct_infreq(JobInvolvement),fill= JobInvolvement)) +
-  facet_wrap(Attrition~ageGroup,  scales = "free", labeller = label_both) + 
-  Pastel1
+  facet_wrap(Attrition~ageGroup,  scales = "free", labeller = label_both)
 
 ggplot(attrition) + 
   geom_bar(aes(x = forcats::fct_infreq(WorkLifeBalance),fill= WorkLifeBalance)) +
   facet_wrap(~ageGroup,  scales = "free") + 
-  labs(title = "Title",x = "X title", 
-       y = "Y title", caption = "caption") +  
-  ggplot_global_settings +
   theme(plot.title = element_text(hjust = 0.5),axis.text.x = element_text(angle = 45, hjust = 1),
         plot.caption = element_text(hjust = 0.5),
-        legend.title = element_text(hjust = 0.5)) +
-  Pastel1
+        legend.title = element_text(hjust = 0.5)) 
 
 # Análisis Exploratorio ---------------------------------------------------
 
@@ -122,10 +147,7 @@ par(old.par) # para restart el display / canvas
 
 
 ggplot(attrition, aes(Department, fill = JobSatisfaction)) +
-  geom_bar(position = "dodge") +
-  my_labs() +
-  ggplot_global_settings +
-  Pastel1
+  geom_bar(position = "dodge")
 
 quantile(MonthlyIncome)
 cv(MonthlyIncome)
@@ -134,9 +156,6 @@ kurtosis(MonthlyIncome)
 ### About monthly Income
 ggplot(attrition, aes(MonthlyIncome, fill = Attrition)) +
   geom_histogram(binwidth = 500, color = "black", alpha = .8) +
-  labs(title = "Distribución de Ingresos mensuales", 
-       subtitle = "Según condición de 'attrition'", 
-       x = "Ingresos Mensuales", y = "Cantidad") + 
   theme(text = element_text(family = "A" ), 
         plot.margin=margin(1.5, 0, 1.5, 0,"cm"))
 +
