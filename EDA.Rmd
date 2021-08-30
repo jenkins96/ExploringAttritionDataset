@@ -155,22 +155,124 @@ attrition %>%
 ```
 <p>If the population is broken down into whether it is above the average monthly income or not, 977 people are below the average, while 493 are above this value. Of these 977 people, 185 did leave the company, representing 19% of the population. Of the 493 people above the average, 52 people left the company, representing 11% of that population.
 </p>
-## R Markdown
+<table>
+  <tr>
+    <th>Category</th>
+    <th>Total</th>
+    <th>Quantity 
+“Attrition” Yes</th>
+    <th>“Attrition”
+ Yes (percentage)</th>
+  </tr>
+  <tr>
+    <td>Below average</td>
+    <td>977</td>
+    <td>185</td>
+    <td>19%</td>
+  </tr>
+  <tr>
+    <td>Above average</td>
+    <td>493</td>
+    <td>52</td>
+    <td>11%</td>
+  </tr>
+</table>
+Category	Total	Quantity  “Attrition” Yes	“Attrition”  Yes (percentage)
+Below average	977	185	19.00%
+Above average	493	52	11.00%  
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+<p>The important point of this exercise is that monthly income has an effect on the decision to leave the company. The risk of an employee leaving the company, if they have a lower than average monthly salary, exceeds that of an above-average salary by 8.4%.
+At the moment, this would seem to indicate that it is employees with monthly incomes below about $6500 and who have worked for the company for less than 13 years who leave most frequently.
+</p>
+```{r echo = FALSE}
+ggplot(attrition) + 
+  geom_boxplot(aes(x = reorder(WorkLifeBalance, YearsAtCompany, FUN = median), y = YearsAtCompany, color = Attrition)) +
+  labs(title = "Work Life Balance Vs Years At Company",
+       subtitle ="According to 'Attrition' condition",
+       x ="Work Life Balance", y ="Years At Comapany")
+```
+  
+<p>The people who leave the company the most have been with the company for less than 10 years and have a "good" work/life balance. Possibly this is because, having a moderately moderate work-life balance, they have a real possibility of leaving the company. While those with a poor work-life balance simply do not have the material conditions to leave.  
+We are now interested in analyzing the age variable:
+</p>
+```{r echo = FALSE}
+quantile(Age)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+<p>With respect to age, the company has employees ranging from 18 to 60 years of age. Where, 50% of the employees are over 36 years old.
+Another variable that a company should capture is the involvement that its employees have with their work. This could not only serve as an indicator to know what is wrong, but also to take advantage of this involvement and drive the company forward. 
+First of all, we are interested in having a variable that groups the ages within a certain range. To achieve this, a new variable is created: "ageGroup", which will group people into the following categories:
+</p>
+<ul>
+  <li>51 and up</li>
+  <li>41-50</li>
+  <li>31-40</li>
+  <li>21-30</li>
+  <li>20 or below</li>
+</ul>
+<p>After grouping by age range, the behavior of age with respect to work involvement is observed:</p>
+```{r}
+ggplot(attrition) + 
+  geom_bar(aes(x = ageGroup, fill= JobInvolvement)) +
+  labs(title = "Job Involvement By Each Age Group", x = "Age Group",
+       y = "Quantity")
 ```
+  
+<p>The "31-40" age group is where 42% of all employees are to be found. It seems that this last group is the one with the highest involvement in the work. A table by column with the number and percentages present in each age group is presented for a better understanding:
+</p>
+Age Group	Quantity	Percentage	Accumulated Percentage
+“20 or bellow”	28	1.9%	1.9%
+“21-30”	358	24.3%	26.2%
+“31-40”	619	42.1%	68.3%
+“41-50”	322	21.9%	90.2%
+“51 and up”	143	9.7%	99.9%
+<p>However, it is not possible to rush, as this is probably due to the number of observations in this group. It must be visualized in a better way to understand this phenomenon:</p>
+```{r echo = FALSE}
+ggplot(attrition) + 
+  geom_bar(aes(x = JobInvolvement, fill = JobInvolvement)) +
+  facet_wrap(~ageGroup,  scales = "free") + 
+  labs(title = "Job Involvement By Each Age Group",
+       x = "Job Involvement", y = "Quantity (free scale)") +  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_text(hjust = 0.5))
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```
+<p>All age groups seem to follow the same pattern. Therefore, this does not reveal much information. Despite this, it is important to know how a company's employees are doing. With this information it is possible to avoid mistakes by the person or, worse, that they decide to leave the company. This is a big cost for the company. Companies have to be aware of this type of information and situations to be able to resolve them in the best possible way.
+What is interesting to visualize is the graph above, according to whether or not the person left the company:
+</p>
+```{r echo = FALSE}
+wrapper <- function(x, ...) 
+{
+  paste(strwrap(x, ...), collapse = "\n")
+}
+# Variable captionpara no ensuciar más el gráfico siguiente y usarlo con wrapper
+#caption <- "Caption"
+ggplot(attrition) +
+  labs(title = "Job Involvement By Each Age Group",
+       subtitle = "According to 'Attirion' condition",
+       x = "Job Involvement", y = "Quantity") +
+  theme(plot.title = element_text(hjust = 0.5, face = 'bold'),axis.text.x =   element_text(angle = 45, hjust = 1, face = 'bold'),
+        axis.title.y = element_text(face = 'bold'),
+        axis.title.x = element_text(face = 'bold'),
+        panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        strip.text.x = element_text(size = 7, face = "bold"),
+        legend.title = element_text(hjust = 0.5, face = "bold" )) +
+  guides(fill=guide_legend("Job Involvement Rating")) +
+  geom_bar(aes(x = JobInvolvement, fill= JobInvolvement)) +
+  facet_wrap(Attrition~ageGroup,  scales = "free") + 
+  theme(text = element_text(size = 8)) 
+```
+<p>
+The difference is subtle, but there does seem to be a relationship between job involvement and people leaving the company. If we compare each age range with its respective opposite according to the "Attrition" condition, we observe that a pattern is followed: people who leave the company have a "low" satisfaction with respect to their counterpart group who continue to work for the company.  
+3. The educational level of the individual influences the decision to leave the company  
+With this finding, we proceed to find out if educational level plays any role with respect to the variable "Attrition". First, a table of the number of employees who left the company according to their educational level followed by a graph:
+</p>
+Education Category	Quantity	“Attrition” Yes  (percentage)	“Attrition” No (percentage)	Total
+“Below College”	170	18.2%	81.8%	170 / 1470
+“College”	282	15.6%	84.4%	282 / 1470
+“Bachelor”	572	17.3%	82.7%	572 / 1470
+“Master”	398	14.5%	85.5%	398 / 1470
+“Doctor”	48	10.4%	89.6%	48 / 1470
+

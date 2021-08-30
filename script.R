@@ -1,7 +1,6 @@
-library(readr)
+
 # Required Packages ------------------------------------------------------
-listOfPackages <-c("readr","ggplot2","dplyr","tidyr", "purrr", "tibble", "stringr",
-                  "forcats","skimr",
+listOfPackages <-c("tidyverse","skimr",
                    "magrittr", "modeest", "raster", "moments")
 
 for (i in listOfPackages){
@@ -99,6 +98,52 @@ attrition %>%
   geom_smooth(se = F) +
   labs(title = "Monthly Income per Working Years At Company", subtitle = "Employees that did not leave the company", x = "Years At Company", y = "Monthly Income")
 ggsave("NO-yearsAtCompany-vs-montlhyIncome.png", path = "images/")
+
+ggplot(attrition) + 
+  geom_boxplot(aes(x = reorder(WorkLifeBalance, YearsAtCompany, FUN = median), y = YearsAtCompany, color = Attrition)) +
+  labs(title = "Work Life Balance Vs Years At Company",
+       subtitle ="According to 'Attrition' condition",
+       x ="Work Life Balance", y ="Years At Comapany")
+ggsave("workLifeBalance-vs-yearsAtcompany.png", path = "images/")
+
+ggplot(attrition) + 
+  geom_bar(aes(x = ageGroup, fill= JobInvolvement)) +
+  labs(title = "Job Involvement By Each Age Group", x = "Age Group",
+       y = "Quantity")
+ggsave("jobInvolvement-vs-ageGroup.png", path = "images/")
+
+ggplot(attrition) + 
+  geom_bar(aes(x = JobInvolvement, fill = JobInvolvement)) +
+  facet_wrap(~ageGroup,  scales = "free") + 
+  labs(title = "Job Involvement By Each Age Group",
+       x = "Job Involvement", y = "Quantity (free scale)") +  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_text(hjust = 0.5))
+ggsave("FacetWrap-jobInvolvement-vs-ageGroup.png", path = "images/")
+
+
+wrapper <- function(x, ...) 
+{
+  paste(strwrap(x, ...), collapse = "\n")
+}
+#caption <- "Caption"
+ggplot(attrition) +
+  labs(title = "Job Involvement By Each Age Group",
+       subtitle = "According to 'Attirion' condition",
+       x = "Job Involvement", y = "Quantity") +
+  theme(plot.title = element_text(hjust = 0.5, face = 'bold'),axis.text.x =   element_text(angle = 45, hjust = 1, face = 'bold'),
+        axis.title.y = element_text(face = 'bold'),
+        axis.title.x = element_text(face = 'bold'),
+        panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        strip.text.x = element_text(size = 7, face = "bold"),
+        legend.title = element_text(hjust = 0.5, face = "bold" )) +
+  guides(fill=guide_legend("Job Involvement Rating")) +
+  geom_bar(aes(x = JobInvolvement, fill= JobInvolvement)) +
+  facet_wrap(Attrition~ageGroup,  scales = "free") + 
+  theme(text = element_text(size = 8))    
+ggsave("FacetWrap-Attrition-jobInvolvement-vs-ageGroup.png", path = "images/")
 ## 
 
 
