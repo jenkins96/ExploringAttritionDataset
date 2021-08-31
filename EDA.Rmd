@@ -3,9 +3,19 @@ title: "EDA"
 author: "Adrian Jenkins"
 date: "8/30/2021"
 output: html_document
----
 
-```{r setup, include=FALSE}
+---
+<style>
+*{
+font-size: 1em;
+line-height: 1.5;
+}
+figure{
+margin: 1em 0 1em 0;
+padding: 1em 0 1em 0;
+}
+</style>
+```{r setup, include=FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 listOfPackages <-c("tidyverse","forcats","skimr","magrittr", "modeest", "raster", "moments")
 
@@ -44,20 +54,20 @@ ageGroup[which(attrition$Age>20 & attrition$Age<=30)]="21-30"
 ageGroup[which(attrition$Age<=20)]="20 or Below"
 attrition$ageGroup<-as.factor(ageGroup)
 ```
-
-
-The data set used contains `r nrow(data)` observations with `r ncol(data)` variables on different employee information.  
-We are going to detail some of its' variables:  
+<article>
+<section>
+<p>The data set used contains `r nrow(data)` observations with `r ncol(data)` variables on different employee information.  
+We are going to detail some of its' variables:</p>
 <ul>
-  <li>Attrition: Two-level factor ("Yes", "No"). Indicates whether the person left the company or not. Approximately 16% of all employees decided to leave the company, while the remaining 84% continue to work for the company.</li>
-  <li>Environment Satisfaction: Four-level factor ("Low", "Medium", "High", "Very High"). Satisfaction of the person with his or her work environment.<li>
+  <li>**Attrition**: Two-level factor ("Yes", "No"). Indicates whether the person left the company or not. Approximately 16% of all employees decided to leave the company, while the remaining 84% continue to work for the company.</li>
+  <li>**Environment Satisfaction**: Four-level factor ("Low", "Medium", "High", "Very High"). Satisfaction of the person with his or her work environment.</li>
   <ul>
     <li>"Low": A total of 284 people are found, representing 19% of the total population.</li>
     <li>"Medium": There are a total of 287 people, representing 20% of the total population.</li>
     <li>"High": There are a total of 453 people, representing 31% of the total population.</li>
     <li>"Very High": A total of 446 people are found, representing 30% of the total population.</li>
   </ul>
-  <li>"JobInvolvement": four-level factor ("Low", "Medium", "High", "Very High"). Level of involvement that the person has with his or her job.
+  <li>**Job Involvement**: four-level factor ("Low", "Medium", "High", "Very High"). Level of involvement that the person has with his or her job.
 </li>
   <ul>
     <li>"Low": A total of 83 people are found, representing 6% of the total population.</li>
@@ -66,25 +76,28 @@ We are going to detail some of its' variables:
     <li>"Very High": A total of 144 people are found, representing 10% of the total population.</li>
   </ul>
 </ul>
-
-<p>Although the data set has many variables, I think it is always valuable to see its' structure:</p>  
+<p>Although the data set has many variables, I think it is always valuable to see its structure:</p>
+<figure>
 ```{r echo=FALSE}
 str(data, give.attr = FALSE)
 ```
-  
+</figure>
 <p>Next, we have to check for any missing data:</p>
-```{r}
+<figure>
+```{r echo = FALSE}
 sapply(data, function(x) sum(is.na(x)))
 ```
+</figure>
 <p>Lucky for us, there are none missing values</p>  
 <p>Although certain adjustments must be made since the variables of type "character" must be treated as factors. In addition, the variables "Education Environment Satisfaction", "Job Involvement", "Job Level", "Job Satisfaction", "Performance Rating", "Relationship Satisfaction" and "Work Life Balance" should be transformed from numerical to factor type, and should be accompanied by their respective labels. In addition, we are going to create a new variable that groups people based on their age range</p>  
-<p>Let's have a look to our new data ready for exploring:</p>
+<p>Again, I am sorry for another chunk of information but it is important to see our new data ready for exploring:</p>
+<figure>
 ```{r echo=FALSE}
 str(attrition, give.attr = FALSE)
 ```
-  
-<p>The dataset is composed of 17 factor-type variables and 18 numeric-type variables. It also contains no missing observations.  
-A quick scan of the dataset shows that:
+</figure>
+<p>The data set is composed of 17 factor-type variables and 18 numeric-type variables. It also contains no missing observations.  
+A quick scan of the data set shows that:
 </p>
 <ol>
   <li>There were 237 people, out of a total of 1470, who left the company. This represents 16% of the total population.
@@ -93,23 +106,29 @@ A quick scan of the dataset shows that:
   <li>The number of males exceeds the number of females by 20%.</li>
   <li>People with a Bachellors' degree represent 38% of the total number of employees.</li>
 </ol>
+</section>
+<section>
 <h2>EDA</h2>
-<p>These will be the propositions that will guide the exploratory analysis:
-</p>
+<p>These will be the propositions that will guide the exploratory analysis:</p>
 <ol>
   <li>Income per month is related to people leaving the company.</li>
   <li>People with fewer years in the company are the ones who are leaving more frequently.</li>
   <li>The educational level of the individual influences the decision to leave the company.</li>
   <li>Gender may be related to employees leaving the company.</li>
 </ol>  
-<p>1. Income per month is related to people leaving the company</p>
+</section>
+<section>
+<h3>1. Income per month is related to people leaving the company</h3>
 <p>To begin with the first proposition, which is income per month, the quantiles for the Monthly Income variable are presented:
 </p>
+<figure>
 ```{r echo = FALSE}
 quantile(MonthlyIncome)
 ```
+</figure>
 <p>According to the above information, 50% of the employees have a monthly income above $4919. The standard deviation shows that, the income per month deviates approximately $`r round(sd(MonthlyIncome),2)` from the mean. In addition, the value of Fischer's skewness coefficient is 1.37. This indicates a positive skewness, where the skewness concentrates most of its values on the left side of the mean.  
 The following graph shows the distribution:</p>
+<figure>
 ```{r echo = FALSE}
 ggplot(attrition, aes(MonthlyIncome, fill = Attrition)) +
   geom_histogram(binwidth = 500, color = "black", alpha = .8)+
@@ -117,8 +136,12 @@ ggplot(attrition, aes(MonthlyIncome, fill = Attrition)) +
   labs(title="Monthly Income Distribution", x = "Monthly Income", 
        y = "Quantity", caption = "Intercepting 'x' axis with arithmethic mean")
 ```
-<p>It is possible to visualize that "elongation" to the right that characterizes the positive asymmetry. A vertical line is drawn intersecting the arithmetic mean of "Monthly Income" which corresponds to approximately $6500. This is because it appears that below this value is where most of the leavers are concentrated. Assuming that the monthly income increases with the number of years worked in the company, we would expect a more frequent drop in the employees with less years in the company.</p>  
-<p>2. People with fewer years in the company are the ones who are leaving more frequently</p>  
+</figure>
+<p>It is possible to visualize that "elongation" to the right that characterizes the positive asymmetry. A vertical line is drawn intersecting the arithmetic mean of "Monthly Income" which corresponds to approximately $6500. This is because it appears that below this value is where most of the leavers are concentrated. Assuming that the monthly income increases with the number of years worked in the company, we would expect a more frequent drop in the employees with less years in the company.</p>
+</section>
+<section>
+<h3>2. People with fewer years in the company are the ones who are leaving more frequently</h3>
+<figure>
 ```{r echo = FALSE}
 attrition %>%
   filter(YearsAtCompany < 21) %>%
@@ -131,11 +154,12 @@ attrition %>%
   labs(title = "Montlhly Income per Working Years At Company", x = "Years At Company", 
        y = "Monthly Income")
 ```
-  
+</figure>
 <p>The above graph confirms the expected behavior: income per month increases with the years worked for the company. It should be clarified that, for the previous graph, it was filtered only to include employees with 20 years or less working for the company. This is only because there are not so many observations above that value.
 The same horizontal line of the previous graph is drawn, representing the average monthly income. Additionally, a vertical line is added, intercepting the 13 years of working in the company. The latter is drawn because, around this value, there seems to be a break point, where there are no longer so many employees after that number of years. This will be refined in the following graph.  
 The previous graph is then broken down according to the "Attrition" condition:
 </p>
+<figure>
 ```{r echo = FALSE}
 attrition %>%
   filter(YearsAtCompany < 21 & Attrition == "Yes") %>%
@@ -144,8 +168,9 @@ attrition %>%
    geom_smooth(se = F) +
   labs(title = "Monthly Income per Working Years At Company", subtitle = "Employees that did leave the company", x = "Years At Company", y = "Monthly Income")
 ```
-  
-```{r}
+</figure>
+<figure>
+```{r echo = FALSE}
 attrition %>%
   filter(YearsAtCompany < 21 & Attrition == "No") %>%
   ggplot( aes(YearsAtCompany, MonthlyIncome)) +
@@ -153,37 +178,17 @@ attrition %>%
    geom_smooth(se = F) +
   labs(title = "Monthly Income per Working Years At Company", subtitle = "Employees that did not leave the company", x = "Years At Company", y = "Monthly Income")
 ```
+</figure>
 <p>If the population is broken down into whether it is above the average monthly income or not, 977 people are below the average, while 493 are above this value. Of these 977 people, 185 did leave the company, representing 19% of the population. Of the 493 people above the average, 52 people left the company, representing 11% of that population.
-</p>
-<table>
-  <tr>
-    <th>Category</th>
-    <th>Total</th>
-    <th>Quantity 
-“Attrition” Yes</th>
-    <th>“Attrition”
- Yes (percentage)</th>
-  </tr>
-  <tr>
-    <td>Below average</td>
-    <td>977</td>
-    <td>185</td>
-    <td>19%</td>
-  </tr>
-  <tr>
-    <td>Above average</td>
-    <td>493</td>
-    <td>52</td>
-    <td>11%</td>
-  </tr>
-</table>
-Category	Total	Quantity  “Attrition” Yes	“Attrition”  Yes (percentage)
-Below average	977	185	19.00%
-Above average	493	52	11.00%  
-
+</p>  
+|     Category    | Total | Quantity “Attrition” Yes | “Attrition” Yes (percentage) |
+|:---------------:|:-----:|:------------------------:|:----------------------------:|
+| "Below average" |  977  |            185           |              19%             |
+| "Above average" |  493  |            52            |              11%             |
 <p>The important point of this exercise is that monthly income has an effect on the decision to leave the company. The risk of an employee leaving the company, if they have a lower than average monthly salary, exceeds that of an above-average salary by 8.4%.
 At the moment, this would seem to indicate that it is employees with monthly incomes below about $6500 and who have worked for the company for less than 13 years who leave most frequently.
 </p>
+<figure>
 ```{r echo = FALSE}
 ggplot(attrition) + 
   geom_boxplot(aes(x = reorder(WorkLifeBalance, YearsAtCompany, FUN = median), y = YearsAtCompany, color = Attrition)) +
@@ -191,14 +196,15 @@ ggplot(attrition) +
        subtitle ="According to 'Attrition' condition",
        x ="Work Life Balance", y ="Years At Comapany")
 ```
-  
+</figure> 
 <p>The people who leave the company the most have been with the company for less than 10 years and have a "good" work/life balance. Possibly this is because, having a moderately moderate work-life balance, they have a real possibility of leaving the company. While those with a poor work-life balance simply do not have the material conditions to leave.  
 We are now interested in analyzing the age variable:
 </p>
+<figure>
 ```{r echo = FALSE}
 quantile(Age)
 ```
-
+</figure>
 <p>With respect to age, the company has employees ranging from 18 to 60 years of age. Where, 50% of the employees are over 36 years old.
 Another variable that a company should capture is the involvement that its employees have with their work. This could not only serve as an indicator to know what is wrong, but also to take advantage of this involvement and drive the company forward. 
 First of all, we are interested in having a variable that groups the ages within a certain range. To achieve this, a new variable is created: "ageGroup", which will group people into the following categories:
@@ -211,22 +217,27 @@ First of all, we are interested in having a variable that groups the ages within
   <li>20 or below</li>
 </ul>
 <p>After grouping by age range, the behavior of age with respect to work involvement is observed:</p>
-```{r}
+<figure>
+```{r echo = FALSE}
 ggplot(attrition) + 
   geom_bar(aes(x = ageGroup, fill= JobInvolvement)) +
   labs(title = "Job Involvement By Each Age Group", x = "Age Group",
        y = "Quantity")
 ```
-  
+</figure> 
 <p>The "31-40" age group is where 42% of all employees are to be found. It seems that this last group is the one with the highest involvement in the work. A table by column with the number and percentages present in each age group is presented for a better understanding:
-</p>
-Age Group	Quantity	Percentage	Accumulated Percentage
-“20 or bellow”	28	1.9%	1.9%
-“21-30”	358	24.3%	26.2%
-“31-40”	619	42.1%	68.3%
-“41-50”	322	21.9%	90.2%
-“51 and up”	143	9.7%	99.9%
+</p>  
+|    Age Group   | Quantity | Percentage | Accumulated Percentage |
+|:--------------:|:--------:|:----------:|:----------------------:|
+| “20 or bellow” |    28    |    1.9%    |          1.9%          |
+| “21-30”        |    358   |    24.3%   |          26.2%         |
+| “31-40”        |    619   |    42.1%   |          68.3%         |
+| “41-50”        |    322   |    21.9%   |          90.2%         |
+| “51 and up”    |    143   |    9.7%    |          99.9%         |
+| **Total**      | **1470** |  **100%**  |         **100%**       |
+
 <p>However, it is not possible to rush, as this is probably due to the number of observations in this group. It must be visualized in a better way to understand this phenomenon:</p>
+<figure>
 ```{r echo = FALSE}
 ggplot(attrition) + 
   geom_bar(aes(x = JobInvolvement, fill = JobInvolvement)) +
@@ -237,15 +248,16 @@ ggplot(attrition) +
         legend.title = element_text(hjust = 0.5))
 
 ```
+</figure>
 <p>All age groups seem to follow the same pattern. Therefore, this does not reveal much information. Despite this, it is important to know how a company's employees are doing. With this information it is possible to avoid mistakes by the person or, worse, that they decide to leave the company. This is a big cost for the company. Companies have to be aware of this type of information and situations to be able to resolve them in the best possible way.
 What is interesting to visualize is the graph above, according to whether or not the person left the company:
 </p>
+<figure>
 ```{r echo = FALSE}
 wrapper <- function(x, ...) 
 {
   paste(strwrap(x, ...), collapse = "\n")
 }
-# Variable captionpara no ensuciar más el gráfico siguiente y usarlo con wrapper
 #caption <- "Caption"
 ggplot(attrition) +
   labs(title = "Job Involvement By Each Age Group",
@@ -264,15 +276,185 @@ ggplot(attrition) +
   facet_wrap(Attrition~ageGroup,  scales = "free") + 
   theme(text = element_text(size = 8)) 
 ```
+</figure>
 <p>
-The difference is subtle, but there does seem to be a relationship between job involvement and people leaving the company. If we compare each age range with its respective opposite according to the "Attrition" condition, we observe that a pattern is followed: people who leave the company have a "low" satisfaction with respect to their counterpart group who continue to work for the company.  
-3. The educational level of the individual influences the decision to leave the company  
-With this finding, we proceed to find out if educational level plays any role with respect to the variable "Attrition". First, a table of the number of employees who left the company according to their educational level followed by a graph:
+The difference is subtle, but there does seem to be a relationship between job involvement and people leaving the company. If we compare each age range with its respective opposite according to the "Attrition" condition, we observe that a pattern is followed: people who leave the company have a "low" satisfaction with respect to their counterpart group who continue to work for the company.</p>
+</section>
+<section>
+<h3>3. The educational level of the individual influences the decision to leave the company </h3>
+<p>With this finding, we proceed to find out if educational level plays any role with respect to the variable "Attrition". First, a table of the number of employees who left the company according to their educational level followed by a graph:
 </p>
-Education Category	Quantity	“Attrition” Yes  (percentage)	“Attrition” No (percentage)	Total
-“Below College”	170	18.2%	81.8%	170 / 1470
-“College”	282	15.6%	84.4%	282 / 1470
-“Bachelor”	572	17.3%	82.7%	572 / 1470
-“Master”	398	14.5%	85.5%	398 / 1470
-“Doctor”	48	10.4%	89.6%	48 / 1470
+| Education Category | Quantity | “Attrition” Yes (percentage) | “Attrition” No (percentage) |    Total   |
+|:------------------:|:--------:|:----------------------------:|:---------------------------:|:----------:|
+| “Below College”    |    170   |             18.2%            |            81.8%            | 170 / 1470 |
+| “College”          |    282   |             15.6%            |            84.4%            | 282 / 1470 |
+| “Bachelor”         |    572   |             17.3%            |            82.7%            | 572 / 1470 |
+| “Master”           |    398   |             14.5%            |            85.5%            | 398 / 1470 |
+| “Doctor”           |    48    |             10.4%            |            89.6%            |  48 / 1470 |
+<figure>
+```{r echo = FALSE}
+attrition %>%
+  mutate(Education = factor(Education, levels = c("Below College", "College", "Bachelor", "Master", "Doctor"))) %>%
+  ggplot( aes(Education, fill = Attrition)) + 
+  geom_bar(position = "fill") +
+  labs(title="Proportion Of People Leaving The Company \n By Educational Level",
+       x = "Educational Level", y = "Proportion")
+```
+</figure>
+<p>The graph above shows that 18.2% of employees with "Below College" level education are leaving the company. This makes sense, as they have the fewest years working for the company and will undoubtedly have a salary significantly below the median monthly income of approximately $6500. </p>
+</section>
+<section>
+<h3>4. Gender may be related to dropout</h3>
+<p>Now, it is interesting to explore the data set to find out if there is any differentiation by gender. The following graph seems to indicate that the male gender has a significantly higher hourly rate than the female gender.</p>
+<figure>
+```{r echo = FALSE}
+ggplot(attrition, aes(HourlyRate)) +
+  geom_histogram(bins = 12, color = "black", fill = "#f8f7ff") +
+  facet_wrap(~ Gender) +
+  labs(title = "Hourly Rate Distribution By Gender",
+       x = "Hourly Rate")
+```
+</figure>
+<p>However, it should be remembered that the number of men in the company is greater than the number of women. It would be interesting to observe this same phenomenon according to the number of years worked for the company:</p>
+<figure>
+```{r echo = FALSE}
+attrition %>%
+  filter(YearsAtCompany < 21) %>%
+  ggplot( aes( YearsAtCompany, HourlyRate)) +
+  geom_col(fill = "#bdb2ff") +
+  facet_wrap(~ Gender) +
+  labs(title = "Hourly Rate Distribution Vs. Years At Company",
+       subtitle = "According to gender", x = "Years At Company", y = "Hourly Rate")
+```
+</figure>
+<p>The above chart is filtered to only include employees with a maximum of 10 years working for the company. In fact, from that value onwards, the hourly rate is practically the same. What can be observed in this graph is that, for example, at the five-year mark of working for the company, the male gender does have a higher rate than the female gender. Despite this, the phenomenon could be due to the type of position the person holds and not gender *per se*. There are many possibilities that could be explored, such as a structural problem in society, but that is not the subject of this paper.  
+What is of interest is to find out if there is any statistically significant difference due to gender, at least superficially:
+</p>
+<figure>
+```{r echo = FALSE}
+ggplot(attrition, aes(Gender, HourlyRate, fill = Gender)) +
+  geom_boxplot() +
+  labs(title = "Hourly Rate Distribution According To Gender",
+       x = "Gender", y = "Hourly Rate")
+```
+</figure>
+<p>Indeed, the box plot above shows that the hourly rate is virtually the same regardless of gender. What needs to be investigated now is how it behaves depending on whether the person leaves the company or not:
+</p>
+<figure>
+```{r echo = FALSE}
+attritionName <- c(`Yes` = "Did Abandoned Company",`No` = "Did Not Abandoned Company")
 
+ggplot(attrition, aes(Gender, HourlyRate, fill = Gender)) +
+  geom_boxplot() +
+  labs(title = "Hourly Rate Distribution By Gender", 
+       subtitle = "According to 'Attrition' condition", x = "Gender", y ="Hourly Rate") +
+  facet_wrap(~ Attrition, labeller = as_labeller(attritionName))
+```
+</figure>
+<p>Although it does not appear to be a statistically significant difference, it is worth noting that the median of women who leave the company has a slightly lower hourly rate than men.  
+The following graph shows where this phenomenon occurs:
+</p>
+<figure>
+```{r echo = FALSE}
+attrition %>%
+  filter(HourlyRate > 55) %>%
+  ggplot( aes(x = HourlyRate)) +
+  geom_density(aes(color = Gender)) +
+  geom_vline(aes(xintercept = 64.5 ), color = "black", linetype = "dashed", size = .5) +
+  labs(title = "Hourly Rate Density By Gender", 
+       x = "Hourly Rate")
+```
+</figure>
+<p>It is precisely around $64.5 per hour that women seem to drop out more often than men. However, the difference is minimal.  
+Now, it would be interesting to see what happens if job satisfaction is compared with the frequency of trips that the person has to make for the job:
+</p>
+<figure>
+```{r echo = FALSE}
+ggplot(attrition, aes(BusinessTravel, fill = JobSatisfaction)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Job Travel According To Job Satisfaction",
+       x = "Job Travel", y = "Quantity")
+```
+</figure>  
+| Job Travel          | Quantity | Percentage |
+|---------------------|----------|------------|
+| “Non Travel”        | 150      | 10.2%      |
+| "Travel Frequently" | 277      | 18.8%      |
+| "Travel Rarely"     | 1043     | 71%        |
+| **Total**           | **1470** | **100%**   |
+  
+<p>However, 71% of employees are concentrated in one category. To study this phenomenon properly, we must cross-reference it with the "Attrition" condition, which is the one of interest, and make a table of percentages to really compare:
+</p>
+<figure>
+```{r echo = FALSE}
+ggplot(attrition, aes(BusinessTravel, fill = Attrition)) +
+  geom_bar(position = "fill")  +
+  labs(title = "Job Travel According To 'Attrition' Condition",
+       x =  "Job Travel", y = "Proportion")
+```
+</figure>
+<p>The previous graph shows us a more interesting and useful behavior for the job. It is the "Travel Frequently" category that, in proportion, has the highest number of people who decide to leave the company.  
+Below is a graph to better understand the numbers:
+</p>
+|      Job Travel     | Quantity | “Attrition” YES (percentage) | “Attrition” NO (percentage) | Total |
+|:-------------------:|:--------:|:----------------------------:|:---------------------------:|:-----:|
+| “Non Travel”        |    150   |              8%              |             92%             |  100% |
+| "Travel Rarely"     |   1043   |              15%             |             85%             |  100% |
+| "Travel Frequently" |    277   |             24.9%            |            75.1%            |  100% |
+
+<p>About 25% of employees in the "Travel Frequently" category are leaving the company. This is an important finding. Before analyzing this variable further, it should be noted whether the level of employment has any relationship with employees leaving. The employment level indicates how long ago the person joined the company. In this variable, the closer to one "1" will be categorized as a "Junior Role" and the closer to "5" will be considered a "Senior Role".
+</p>
+<figure>
+```{r echo = FALSE}
+ggplot(attrition) +
+  aes(JobLevel, fill = Attrition) +
+  geom_bar(position = "dodge") +
+  labs(title = "Job Level According To 'Attrition' Condition",
+        x = "Job Level", y = "Quantity")
+```
+</figure>
+| Job Level | Quantity | “Attrition” YES  (percentage) | “Attrition” NO (percentage) |
+|:---------:|:--------:|:-----------------------------:|:---------------------------:|
+| 1         |    543   |             26.3%             |            73.7%            |
+| 2         |    534   |              9.7%             |            90.3%            |
+| 3         |    218   |             14.7%             |            85.3%            |
+| 4         |    106   |              4.7%             |            95.3%            |
+| 5         |    69    |              7.2%             |            92.8%            |
+
+<p>It seems to indicate that those who leave the company the most are those in a "Junior" role. This category has the highest percentage of 'Attrition', proportionally speaking. Around 26% of employees are leaving the company. It coincides precisely with employees who have fewer years with the company. This is consistent with what has been observed about income per month and years worked in the company.
+</p></br>
+<p>Finally, the above variables are displayed together with "Over Time":
+</p>
+<figure>
+```{r echo = FALSE}
+ggplot(attrition) +
+  aes(x = JobLevel, fill = Attrition) +
+  geom_bar(position = "fill") + 
+  facet_grid( OverTime ~  BusinessTravel) +
+  labs(title = "Job Level By Job Travel", subtitle = "According to Attrition' and 'Over Time' condition",
+       x = "Job Level", y = "Proportion")
+```
+</figure>
+|     Job Level & Job Travel    | Quantity | Over Time | “Attrition” YES  (percentage) | “Attrition” NO (percentage) | Total |
+|:-----------------------------:|:--------:|:---------:|:-----------------------------:|:---------------------------:|:-----:|
+| “Junior”, “Travel Frequently” |    39    |    Yes    |             66.7%             |            33.3%            |  100% |
+| “Junior”, “Travel Frequently  |    65    |     No    |             29.2%             |            70.8%            |  100% |
+
+<p>This graph shows that "Junior" employees who are paid overtime and travel frequently leave the company more often. In fact, being part of this group increases the risk of leaving by 37% compared to not paying overtime to this population.
+ With this brief exploratory analysis we have contrasted the propositions at the outset and the following initial conclusions can be drawn:
+</p>
+<ul>
+  <li>Having a lower than average salary increases the risk of leaving the company by 8.4% compared to a salary above that value.
+</li>
+  <li>About 20% of people with a Below College education are leaving the company.
+</li>
+  <li>Employees categorized as "Junior" are at greater risk of leaving the company. Approximately 26% of this population makes the decision to resign.
+</li>
+  <li>Approximately 68% of "Junior" employees, who are paid overtime and work overtime, are leaving the company.</li>
+</ul>
+</section>
+<section>
+<p>
+That is all for today. I hope this could be useful to you in any way.The script is in: "./script.R".</p>
+</section>
+</article>

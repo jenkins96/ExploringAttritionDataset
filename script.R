@@ -27,13 +27,12 @@ skim(data)
 # Transforming Data set ----------------------------------------------------
 
 attrition <- data
-## Attaching it to the session
 attach(attrition)
 
 ## Verifying it is a tibble object
 class(attrition)
 
-## Checking NA's values
+## Checking Na's values
 sapply(attrition, function(x) sum(is.na(x)))
 str(attrition)
 
@@ -63,13 +62,16 @@ ageGroup[which(attrition$Age>20 & attrition$Age<=30)]="21-30"
 ageGroup[which(attrition$Age<=20)]="20 or Below"
 attrition$ageGroup<-as.factor(ageGroup)
 
-## AKI
+
+
+# Graphics ----------------------------------------------------------------
 ggplot(attrition, aes(MonthlyIncome, fill = Attrition)) +
   geom_histogram(binwidth = 500, color = "black", alpha = .8)+
   geom_vline(aes(xintercept = mean(attrition$MonthlyIncome) ), color = "navyblue", linetype = "dashed", size = 1) +
   labs(title="Monthly Income Distribution", x = "Monthly Income", 
        y = "Quantity", caption = "Intercepting 'x' axis with arithmethic mean")
 ggsave("distribution-monthly-income.png", path = "images/")
+
 
 attrition %>%
   filter(YearsAtCompany < 21) %>%
@@ -83,6 +85,7 @@ attrition %>%
        y = "Monthly Income")
 ggsave("yearsAtCompany-vs-monthlyIncome.png", path = "images/")
 
+
 attrition %>%
   filter(YearsAtCompany < 21 & Attrition == "Yes") %>%
   ggplot( aes(YearsAtCompany, MonthlyIncome)) +
@@ -91,13 +94,15 @@ attrition %>%
   labs(title = "Monthly Income per Working Years At Company", subtitle = "Employees that did leave the company", x = "Years At Company", y = "Monthly Income")
 ggsave("YES-yearsAtCompany-vs-montlhyIncome.png", path = "images/")
 
+
 attrition %>%
   filter(YearsAtCompany < 21 & Attrition == "No") %>%
   ggplot( aes(YearsAtCompany, MonthlyIncome)) +
-  geom_jitter(color = "#ffadad")+
+  geom_jitter(color = "#ffadad") +
   geom_smooth(se = F) +
   labs(title = "Monthly Income per Working Years At Company", subtitle = "Employees that did not leave the company", x = "Years At Company", y = "Monthly Income")
 ggsave("NO-yearsAtCompany-vs-montlhyIncome.png", path = "images/")
+
 
 ggplot(attrition) + 
   geom_boxplot(aes(x = reorder(WorkLifeBalance, YearsAtCompany, FUN = median), y = YearsAtCompany, color = Attrition)) +
@@ -106,11 +111,13 @@ ggplot(attrition) +
        x ="Work Life Balance", y ="Years At Comapany")
 ggsave("workLifeBalance-vs-yearsAtcompany.png", path = "images/")
 
+
 ggplot(attrition) + 
   geom_bar(aes(x = ageGroup, fill= JobInvolvement)) +
   labs(title = "Job Involvement By Each Age Group", x = "Age Group",
        y = "Quantity")
 ggsave("jobInvolvement-vs-ageGroup.png", path = "images/")
+
 
 ggplot(attrition) + 
   geom_bar(aes(x = JobInvolvement, fill = JobInvolvement)) +
@@ -144,11 +151,93 @@ ggplot(attrition) +
   facet_wrap(Attrition~ageGroup,  scales = "free") + 
   theme(text = element_text(size = 8))    
 ggsave("FacetWrap-Attrition-jobInvolvement-vs-ageGroup.png", path = "images/")
-## 
+
+
+attrition %>%
+  mutate(Education = factor(Education, levels = c("Below College", "College", "Bachelor", "Master", "Doctor"))) %>%
+  ggplot( aes(Education, fill = Attrition)) + 
+  geom_bar(position = "fill") +
+  labs(title="Proportion Of People Leaving The Company \n By Educational Level",
+       x = "Educational Level", y = "Proportion")
+ggsave("leaversProportion-EducationCategory.png", path = "images/")
+
+ggplot(attrition, aes(HourlyRate)) +
+  geom_histogram(bins = 12, color = "black", fill = "#f8f7ff") +
+  facet_wrap(~ Gender) +
+  labs(title = "Hourly Rate Distribution By Gender",
+       x = "Hourly Rate")
+ggsave("hourlyRate-Distribution-gender.png", path = "images/")
+
+
+attrition %>%
+  filter(YearsAtCompany < 21) %>%
+  ggplot( aes( YearsAtCompany, HourlyRate)) +
+  geom_col(fill = "#bdb2ff") +
+  facet_wrap(~ Gender) +
+  labs(title = "Hourly Rate Distribution Vs. Years At Company",
+       subtitle = "According to gender", x = "Years At Company", y = "Hourly Rate")
+ggsave("hourlyRateDistribution-yearsAtsCompany-Gender.png", path = "images/")
+
+
+ggplot(attrition, aes(Gender, HourlyRate, fill = Gender)) +
+  geom_boxplot() +
+  labs(title = "Hourly Rate Distribution According To Gender",
+       x = "Gender", y = "Hourly Rate")
+ggsave("BOXPLOT-hourlyRate-Distribution-gender.png", path = "images/")
+
+
+attritionName <- c(`Yes` = "Did Abandoned Company",`No` = "Did Not Abandoned Company")
+ggplot(attrition, aes(Gender, HourlyRate, fill = Gender)) +
+  geom_boxplot() +
+  labs(title = "Hourly Rate Distribution By Gender", 
+       subtitle = "According to 'Attrition' condition", x = "Gender", 
+       y ="Hourly Rate") +
+  facet_wrap(~ Attrition, labeller = as_labeller(attritionName))
+ggsave("BOXPLOT-Attrition-HourlyRateByGenderDistribuition.png", path = "images/")
+
+attrition %>%
+  filter(HourlyRate > 55) %>%
+  ggplot( aes(x = HourlyRate)) + 
+  geom_density(aes(color = Gender)) +
+  geom_vline(aes(xintercept = 64.5 ), color = "black", linetype = "dashed", size = .5) +
+  labs(title = "Hourly Rate Density By Gender", 
+       x = "Hourly Rate") 
+ggsave("DENSITY-HourlyRateDistribuitionByGender.png", path = "images/")
+
+
+ggplot(attrition, aes(BusinessTravel, fill = JobSatisfaction)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Job Travel According To Job Satisfaction",
+       x = "Job Travel", y = "Quantity")
+ggsave("jobTravel-jobSatisfaction.png", path = "images/")
+
+
+ggplot(attrition, aes(BusinessTravel, fill = Attrition)) +
+  geom_bar(position = "fill")  +
+  labs(title = "Job Travel According To 'Attrition' Condition",
+       x =  "Job Travel", y = "Proportion") 
+ggsave("jobTravel-Attrition.png", path = "images/")
+
+
+ggplot(attrition) +
+  aes(JobLevel, fill = Attrition) +
+  geom_bar(position = "dodge") +
+  labs(title = "Job Level According To 'Attrition' Condition",
+        x = "Job Level", y = "Quantity") 
+ggsave("jobLevel-Attrition.png", path = "images/")
+
+
+ggplot(attrition) +
+  aes(x = JobLevel, fill = Attrition) +
+  geom_bar(position = "fill") + 
+  facet_grid( OverTime ~  BusinessTravel) +
+  labs(title = "Job Level By Job Travel", subtitle = "According to Attrition' and 'Over Time' condition",
+       x = "Job Level", y = "Proportion")
+ggsave("jobLevel-jobTravel-Attrition-Overtime.png", path = "images/")
 
 
 
-
+# Other Graphics ----------------------------------------------------------
 ggplot(attrition) + geom_bar(aes(x = forcats::fct_infreq(ageGroup),fill= JobInvolvement)) +
   labs(title = "Title", x = "Age", y = "Count") + 
   theme(plot.title = element_text(hjust = 0.5)) + 
@@ -163,7 +252,6 @@ ggplot(attrition) +
         legend.title = element_text(hjust = 0.5)) 
 
 
-
 ggplot(attrition) +
   theme(plot.title = element_text(hjust = 0.5),axis.text.x = element_text(angle = 45, hjust = 1),
         plot.caption = element_text(hjust = 0.5),
@@ -172,6 +260,7 @@ ggplot(attrition) +
   geom_bar(aes(x = forcats::fct_infreq(JobInvolvement),fill= JobInvolvement)) +
   facet_wrap(Attrition~ageGroup,  scales = "free", labeller = label_both)
 
+
 ggplot(attrition) + 
   geom_bar(aes(x = forcats::fct_infreq(WorkLifeBalance),fill= WorkLifeBalance)) +
   facet_wrap(~ageGroup,  scales = "free") + 
@@ -179,148 +268,97 @@ ggplot(attrition) +
         plot.caption = element_text(hjust = 0.5),
         legend.title = element_text(hjust = 0.5)) 
 
-# Análisis Exploratorio ---------------------------------------------------
-
-
-# matriz de scatterplot
-pairs(~x+y+z+...)
-pairs(~Age + DailyRate + MonthlyIncome)
-# combinacion de plots con par
-old.par <- par()
-par(mfrow = c(1, 2))
-par(old.par) # para restart el display / canvas
-
 
 ggplot(attrition, aes(Department, fill = JobSatisfaction)) +
   geom_bar(position = "dodge")
 
-quantile(MonthlyIncome)
-cv(MonthlyIncome)
-kurtosis(MonthlyIncome)
 
-### About monthly Income
 ggplot(attrition, aes(MonthlyIncome, fill = Attrition)) +
   geom_histogram(binwidth = 500, color = "black", alpha = .8) +
   theme(text = element_text(family = "A" ), 
-        plot.margin=margin(1.5, 0, 1.5, 0,"cm"))
-+
-  theme(plot.margin=margin(1.5, 0, 1.5, 0,"cm"))
+        plot.margin=margin(1.5, 0, 1.5, 0,"cm")) +
+  theme(plot.margin=margin(1.5, 0, 1.5, 0,"cm")) +
+  theme_bw()
 
-theme_bw()
-theme(text=element_text(family="Times New Roman", face="bold", size=12)) 
-theme(plot.margin=margin(1.5, 0, 1.5, 0,"cm")) +
-  
-  
   
   ggplot(attrition, aes(YearsAtCompany, MonthlyIncome)) +
   geom_hex( color = "black") +
   geom_smooth(se = F) + 
   geom_hline(aes(yintercept= 6500), color = "red", linetype = "dashed", size = 1) +
   geom_vline(aes(xintercept=15 ), color="green", linetype = "dashed", size = 1) + 
-  labs(title = "Años en la Compañía vs Ingresos Mensuales",
-       x = "Años en la Compañía", y = "Ingresos Mensuales") +
   theme(plot.margin=unit(c(1,1,1.5,1.2),"cm"))
 
 
-mean(Age)
-quantile(Age)
-
-### About Age
 ggplot(attrition, aes(Age,y = ..density.., color = WorkLifeBalance)) +
-  geom_freqpoly(binwidth = 5) +
-  labs(title = "Distribución de la edad", 
-       subtitle = "Según el balance entre vida y trabajo", x = "Edad", y = "Densidad")
+  geom_freqpoly(binwidth = 5) 
+
 
 ggplot(attrition, aes(x = WorkLifeBalance , y = Age)) +
-  geom_boxplot() +
-  labs(title = "Distribución de la edad", 
-       subtitle = "Según el balance entre vida y trabajo", x = "Edad", y = "Cantidad")
+  geom_boxplot() 
 
 ggplot(attrition, aes(Education, Age, fill = Attrition)) +
-  geom_boxplot() +
-  labs(title = "Diagrama de Cajas entre nivel de educación y edad",
-       subtitle = "Según 'attrition'", x = "Nivel de Educación",
-       y = "Edad") 
+  geom_boxplot()
+
 
 ggplot(attrition, aes(col=JobInvolvement , x=Age,y=1)) + 
   stat_summary(geom="line",fun = sum) + 
   geom_vline(aes(xintercept=30 ), color="black", linetype = "dashed", size = 1) + 
-  geom_vline(aes(xintercept=40 ), color="black", linetype = "dashed", size = 1) + 
-  labs(title = "Cuenta del Involucramiento del Trabajo por Edad", x = "Edad", y = "Cantidad")
-
-
-### About Gender
+  geom_vline(aes(xintercept=40 ), color="black", linetype = "dashed", size = 1) 
 
 
 ggplot(attrition, aes(HourlyRate)) +
   geom_histogram(bins = 12, color = "black", fill = "lightblue") +
-  facet_wrap(~Gender) +
-  labs(title = "Distribución de tarifa por hora", 
-       subtitle = "Según género", 
-       x = "Tarifa por hora", y = "Cantidad")
+  facet_wrap(~Gender)
+
 
 ggplot(attrition, aes(Gender, HourlyRate, fill = Gender)) +
-  geom_boxplot() +
-  labs(title = "Diagrama de Cajas según género y tarifa por hora", 
-       x = "Género",  y = "Tarifa por hora")
+  geom_boxplot()
+
 
 ggplot(attrition, aes(Gender, fill = Attrition)) +
-  geom_bar(position = "fill", alpha = .8) + # para verlo en proporcion
-  labs(title = "Diagrama de Barras según género",
-       x = "Género", y = "Proporción")
-
+  geom_bar(position = "fill", alpha = .8)
 
 
 ggplot(attrition, aes(Gender, HourlyRate, fill = Gender)) +
   geom_boxplot() +
-  labs(title = "Diagrama de Cajas según Género y Tarifa por Hora",
-       x = "Género", y = "Tarifa por Hora") +
   facet_wrap(~ Attrition) 
 
-ggplot(attrition, aes(x = HourlyRate, y = ..density..)) + # DISPLAYS STANDARIZEED COUNT
+
+ggplot(attrition, aes(x = HourlyRate, y = ..density..)) +
   geom_freqpoly(aes(color = Gender), binwidth = 5) +
   geom_vline(aes(xintercept = 65 ), color = "black", linetype = "dashed", size = 1)
 
+
 ggplot(attrition, aes(JobSatisfaction, fill = Gender)) +
   geom_bar(position = "fill") +
-  labs(title = "Proporción de satisfacción del trabajo", 
-       subtitle = "Según género", x = "Satisfacción del Trabajo",
-       y = "Proporción") +
   coord_flip() 
 
+
 ggplot(attrition, aes(MaritalStatus, HourlyRate, fill = Gender)) +
-  geom_boxplot() +
-  labs(title = "Diagrama de Cajas según Estado Civil y Tarifa por Hora", 
-       x = "Estado Civil", y = "Tarifa por Hora")
-
-
-### About Others
+  geom_boxplot()
 
 
 ggplot(attrition, aes(Department, fill = JobSatisfaction)) +
-  geom_bar(position = "dodge") +
-  labs(title = "Diagrama de Barras de acuerdo al Departamento y Satisfación del Trabajo",
-       x = "Departamento", y = "Cantidad")
+  geom_bar(position = "dodge")
+
 
 ggplot(attrition, aes(BusinessTravel, fill = JobSatisfaction)) +
   geom_bar(position = "dodge")
 
+
 ggplot(attrition, aes(BusinessTravel, fill = Attrition)) +
   geom_bar()
 
+
 ggplot(attrition) +
   aes(JobLevel, fill = Attrition) +
-  geom_bar(position = "dodge") +
-  labs(title = "Diagrama de Barras segun Nivel de empleo y 'attrition'",
-       x = "Nivel de Empleo", y = "Cantidad")
+  geom_bar(position = "dodge")
+
 
 ggplot(attrition) +
   aes(x = JobLevel, fill = factor(Attrition)) +
   geom_bar(position = "fill") + 
-  facet_wrap(BusinessTravel~OverTime) +
-  labs(title = "Diagrama de Barras de Nivel de Empleo", 
-       subtitle = "Según condición de 'attrition'", x = "Nivel de Empleo", y = "Cantidad")
-
+  facet_wrap(BusinessTravel ~ OverTime)
 
 
 attrition %>%
@@ -328,85 +366,32 @@ attrition %>%
   ggplot(aes(Attrition, JobInvolvement)) +
   geom_tile(aes(fill = n))
 
+
 attrition %>%
   count(Attrition, JobRole) %>%
   ggplot(aes(Attrition, JobRole)) +
   geom_tile(aes(fill = n))
 
+
 ggplot(attrition) + 
-  geom_bar(position = "dodge", aes(x = forcats::fct_infreq(Education), fill = Attrition)) +
-  labs(title = "Diagrama de Barras de acuerdo al Nivel de Estudios", 
-       x = "Nivel de Estudio", y = "Cantidad")
-
-
-
+  geom_bar(position = "dodge", aes(x = forcats::fct_infreq(Education), fill = Attrition)) 
 
 
 ggplot(attrition) +
   aes(WorkLifeBalance, fill = Attrition) +
   geom_bar(position = "fill")
 
-ggplot(attrition, aes(col = Attrition , x = YearsAtCompany,y=1)) + 
+
+ggplot(attrition, aes(col = Attrition , x = YearsAtCompany, y = 1)) + 
   stat_summary(geom="line",fun = sum) + 
   facet_wrap(~WorkLifeBalance,  scales = "fixed")
 
+
 ggplot(attrition, aes(Education, Age, fill = Attrition)) +
-  geom_boxplot() +
-  labs(title = "Diagrama de Cajas entre nivel de educación y edad",
-       subtitle = "Según 'attrition'", x = "Nivel de Educación",
-       y = "Edad") +
-  ggplot_global_settings +
-  Pastel1
+  geom_boxplot()
 
-# Medidas de Centralización -----------------------------------------------
-
-mean(x)
-median(x)
-mfv(x) # thanks to modeest library
-quantile(x) # thanks to raster library
-
-
-
-# Medidas de Dispersión ---------------------------------------------------
-
-var(x)
-sd(x)
-cv(x) # thanks to raster library
-
-
-# Medidas de Asimetría ----------------------------------------------------
-
-skewness(data$Age)
-kurtosis(x) # thanks to moments library
-
-
-# For reordering
-ggplot(mpg) +
-  geom_boxplot(aes(x = reorder(class, hwy, FUN = median), y = hwy)) +
-  coord_flip()
-
-# data2 <- lapply(data, function(x) if(is.character(x)) as.factor(x) else x)
 
 ggplot(attrition, aes(MonthlyIncome, fill = Attrition)) +
   geom_histogram(binwidth = 500, color = "black", alpha = .8) +
-  my_labs("titulo","subtitle" , "xt", "ylab", "caption")
-
-my_labs <- function(title, subtitle = NULL, xtitle, ytitle, caption = NULL){
-  warning('order: title, subtitle, x, y, caption. If want to skip subtitle leave a space. If you want to skip caption just do not write anything')
-  ggplot_labs <- labs(title = title, 
-                      subtitle = subtitle, 
-                      x = xtitle, 
-                      y = ytitle, 
-                      caption = caption)
-  
-  return(ggplot_labs) 
-}
-
-+
-  labs(title = "Distribución de Ingresos mensuales", 
-       subtitle = "Según condición de 'attrition'", 
-       x = "Ingresos Mensuales", y = "Cantidad") +
-  geom_vline(aes(xintercept = 6800 ), color = "#A6DBA0", linetype = "dashed", size = 1) +
-  ggplot_global_settings +
-  Pastel1
+  geom_vline(aes(xintercept = 6800 ), color = "#A6DBA0", linetype = "dashed", size = 1) 
 
