@@ -54,8 +54,7 @@ Data set was obtained from [IBM HR Analytics Employee Attrition & Performance](h
 
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+Just explore the html file!
 
 ### Prerequisites
 None if you just want to look at the output. Just download the whole directory and then open "EDA.html" file.
